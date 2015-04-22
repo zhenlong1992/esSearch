@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -16,11 +15,24 @@ public class FileIO {
 
 	}
 
-/**
- * read first line
- * @param fileName
- * @return url
- */
+	/**
+	 * 
+	 * @return Document amount
+	 */
+	public int countDoc(String fileName) {
+		File file = new File(fileName);
+		String files[];
+		files = file.list();
+		int num = files.length;
+		return num;
+	}
+
+	/**
+	 * read first line
+	 * 
+	 * @param fileName
+	 * @return url
+	 */
 	public String readURL(String fileName) {
 		File file = new File(fileName);
 		BufferedReader reader = null;
@@ -42,11 +54,13 @@ public class FileIO {
 		}
 		return tempString;
 	}
-/**
- * read except first line
- * @param fileName
- * @return content
- */
+
+	/**
+	 * read except first line
+	 * 
+	 * @param fileName
+	 * @return content
+	 */
 	public StringBuilder readContent(String fileName) {
 		File file = new File(fileName);
 		BufferedReader reader = null;

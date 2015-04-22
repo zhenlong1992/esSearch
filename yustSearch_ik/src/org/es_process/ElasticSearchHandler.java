@@ -1,5 +1,6 @@
 package org.es_process;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,11 +33,14 @@ import org.util.FileIO;
 public class ElasticSearchHandler {
 
 	private static Client client;
-/**
- * 构造函数。连接ES引擎
- * @param ipAddress
- */
-	public ElasticSearchHandler(String ipAddress) {
+	private static String FOLDER_NAME = "documents/";
+
+	/**
+	 * 构造函数。连接ES引擎
+	 * 
+	 * @param ipAddress
+	 */
+	public ElasticSearchHandler(String ipAddress, int port) {
 		// 集群连接超时设置
 		/*
 		 * Settings settings =
@@ -46,7 +50,7 @@ public class ElasticSearchHandler {
 		// InetSocketTransportAddress() Parameter: ipAddress,Port
 		client = new TransportClient()
 				.addTransportAddress(new InetSocketTransportAddress(ipAddress,
-						9300));
+						port));
 	}
 
 	/**
@@ -66,6 +70,14 @@ public class ElasticSearchHandler {
 	 *             创建映射 有两个field 一个是url另一个是content
 	 */
 	public void createMapping(String indexname, String type) throws IOException {
+		/**
+		 * "mappings": { { "_all": { "analyzer": "ik", "auto_boost": true },
+		 * "properties": { "content": { "include_in_all": true, "analyzer":
+		 * "ik", "term_vector": "with_positions_offsets", "boost": 8, "type":
+		 * "string" }, "url": { "include_in_all": true, "analyzer": "ik",
+		 * "term_vector": "with_positions_offsets", "boost": 8, "type": "string"
+		 * } } }
+		 */
 		XContentBuilder mapping = XContentFactory.jsonBuilder().startObject()
 				.startObject(type).startObject("_all")
 				.field("indexAnalyzer", "ik").field("searchAnalyzer", "ik")
@@ -88,7 +100,6 @@ public class ElasticSearchHandler {
 	}
 
 	/**
-	 * 
 	 * @param indexname
 	 * @param type
 	 * @throws IOException
@@ -99,9 +110,10 @@ public class ElasticSearchHandler {
 		StringBuilder content = null;
 		String url = null;
 		BulkRequestBuilder bulkRequest = client.prepareBulk();
-		for (int i = 1; i < 165615; i++) {
-			content = file.readContent("documents/" + "doc" + i + ".txt");
-			url = file.readURL("documents/" + "doc" + i + ".txt");
+		int docAmount = file.countDoc(FOLDER_NAME);
+		for (int i = 1; i < docAmount; i++) {
+			url = file.readURL(FOLDER_NAME + "doc" + i + ".txt");
+			content = file.readContent(FOLDER_NAME + "doc" + i + ".txt");
 			XContentBuilder builder = XContentFactory.jsonBuilder()
 					.startObject().field("url", url).field("content", content)
 					.endObject();
@@ -144,8 +156,8 @@ public class ElasticSearchHandler {
 
 				Integer id = (Integer) hit.getSource().get("id");
 				String url = (String) hit.getSource().get("url");
-				// String content = (String) hit.getSource().get("content");
-				String content = result.get("content").toString();
+				String content = (String) hit.getSource().get("content");
+				// String content = result.get("content").toString();
 				list.add(new Document(id, url, content));
 			}
 		}
